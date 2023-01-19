@@ -1,0 +1,2 @@
+# IGME-560
+IGME 560.01 AI in Games
