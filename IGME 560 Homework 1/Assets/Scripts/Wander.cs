@@ -1,38 +1,30 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
-
 
 public class Wander : MonoBehaviour
 {
     [SerializeField]
     public GameObject character;
 
-
-    public List<Vector3> targetList;
-    public Vector3 curTarget;
-    private int target = 0;
-
     [SerializeField]
     public float maxSpeed = 0.01f;
-    
+    [SerializeField]
+    private float maxRotation = 5f;
+
+    KinematicSteeringOutput moveValues;
 
     // Start is called before the first frame update
     void Start()
     {
-        targetList.Add(new Vector3(7, 4, 0));
-        targetList.Add(new Vector3(-7, 4, 0));
-        targetList.Add(new Vector3(-7, -4, 0));
-        targetList.Add(new Vector3(7, -4, 0));
-
-        curTarget = targetList[target];
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        character.transform.position += GetSteering().velocity;
+        moveValues = GetSteering();
+        character.transform.position += moveValues.velocity;
+        character.transform.eulerAngles += new Vector3(0, 0, moveValues.rotation);
     }
 
     float DistToTarget(Vector3 _curPosition, Vector3 _target)
@@ -42,38 +34,22 @@ public class Wander : MonoBehaviour
         return Mathf.Sqrt(testx + testy);
     }
 
-
+    float randomBinomial()
+    {
+        return Random.Range(0.0f, 1.0f) - Random.Range(0.0f, 1.0f);
+    }
 
 
     KinematicSteeringOutput GetSteering()
     {
         KinematicSteeringOutput result = new KinematicSteeringOutput();
 
-        if(DistToTarget(character.transform.position, curTarget) < 0.1f)
-        {
-            target++;
-            if (target > 3)
-            {
-                target = 0;
-            }
-            curTarget = targetList[target];
-   
-        }
+        // Get velocity from the vector form of the orientation
+        // maxSpeed * unit vector of character direction
+        result.velocity = maxSpeed * new Vector3(-Mathf.Sin(character.transform.eulerAngles.z * Mathf.Deg2Rad), Mathf.Cos(character.transform.eulerAngles.z * Mathf.Deg2Rad), 0.0f).normalized;
 
+        result.rotation = randomBinomial() * maxRotation;
 
-        // Get the direction to the target.
-        result.velocity = curTarget - character.transform.position;
-        
-
-        // The Velocity is along this direction, at full speed.
-        result.velocity.Normalize();
-        result.velocity *= maxSpeed;
-
-        Debug.Log(result.velocity);
-        // Face in the direction we want to move.
-        character.transform.eulerAngles = new Vector3(0, 0, -NewOrientation(character.transform.rotation.z, result.velocity));
-
-        result.rotation = 0;
         return result;
     }
 

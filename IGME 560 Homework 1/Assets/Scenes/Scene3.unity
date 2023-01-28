@@ -225,9 +225,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   character: {fileID: 709815592}
-  targetList: []
-  curTarget: {x: 0, y: 0, z: 0}
-  maxSpeed: 0.01
+  maxSpeed: 0.03
+  maxRotation: 15
 --- !u!1001 &1119248855
 PrefabInstance:
   m_ObjectHideFlags: 0
