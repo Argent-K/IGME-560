@@ -14,6 +14,10 @@ public class Wander : MonoBehaviour
 
     KinematicSteeringOutput moveValues;
 
+    bool turnAround = false;
+
+    // Edges are at x = 8/-8 and y = 5/-5
+
     // Start is called before the first frame update
     void Start()
     {
@@ -25,6 +29,14 @@ public class Wander : MonoBehaviour
         moveValues = GetSteering();
         character.transform.position += moveValues.velocity;
         character.transform.eulerAngles += new Vector3(0, 0, moveValues.rotation);
+        if ((character.transform.position.x > 8 || character.transform.position.x < -8 || character.transform.position.y > 5 || character.transform.position.y < -5) && turnAround == false)
+        {
+            character.transform.eulerAngles += new Vector3(0, 0, 180f);
+        }
+        if ((character.transform.position.x < 8 && character.transform.position.x > -8 && character.transform.position.y < 5 && character.transform.position.y > -5) && turnAround == true)
+        {
+            turnAround = false;
+        }
     }
 
     float DistToTarget(Vector3 _curPosition, Vector3 _target)
@@ -48,8 +60,11 @@ public class Wander : MonoBehaviour
         // maxSpeed * unit vector of character direction
         result.velocity = maxSpeed * new Vector3(-Mathf.Sin(character.transform.eulerAngles.z * Mathf.Deg2Rad), Mathf.Cos(character.transform.eulerAngles.z * Mathf.Deg2Rad), 0.0f).normalized;
 
+
+        
         result.rotation = randomBinomial() * maxRotation;
 
+        
         return result;
     }
 
