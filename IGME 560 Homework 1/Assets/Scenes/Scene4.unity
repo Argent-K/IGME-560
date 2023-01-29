@@ -283,7 +283,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   character: {fileID: 1354140301}
   target: {fileID: 2111723122}
-  maxAcceleration: 0.05
+  maxAcceleration: 1
 --- !u!50 &1354140306
 Rigidbody2D:
   serializedVersion: 4
