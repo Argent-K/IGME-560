@@ -17,12 +17,52 @@ public class Dijkstra : MonoBehaviour
     // The stopwatch for timing search.
     private static Stopwatch watch = new Stopwatch();
 
+
     public static IEnumerator search(GameObject start, GameObject end, float waitTime, bool colorTiles = false, bool displayCosts = false, Stack<NodeRecord> path = null)
     {
         // Starts the stopwatch.
-        watch.Start();
-        
+        watch.Start();  
+
         // Add your Dijkstra code here.
+
+        // Initialize the record for the start node
+        NodeRecord startRecord = new NodeRecord();
+        startRecord.Tile = start;
+        startRecord.tileConnection = null;
+        startRecord.costSoFar = 0;
+
+        // Initialize the open and closed lists
+        List<NodeRecord> open = new List<NodeRecord>();
+        open.Add(startRecord);
+        List<NodeRecord> closed = new List<NodeRecord>();
+
+        // Iterate through processing each node
+        while (open.Count > 0)
+        {
+            // find the smallest element in the open list
+            NodeRecord current = SmallestElement(open);
+
+            if(colorTiles)
+            {
+                current.ColorTile(activeColor);
+            }
+
+            // Pause the animation to show the new active tile
+            // This is the actual c# command to use
+            yield return new WaitForSeconds(waitTime);
+
+            // If it is the goal node, then terminate
+            if (current.Tile == end)
+            {
+                break;
+            }
+
+            // otherwise get its outgoing connections
+            // email
+            current.connections = Graph.GetConnections(current);
+        }
+        
+
 
         // Stops the stopwatch.
         watch.Stop();
@@ -37,6 +77,19 @@ public class Dijkstra : MonoBehaviour
 
         yield return null;
     }
+    public static NodeRecord SmallestElement(List<NodeRecord> _open)
+    {   
+        NodeRecord smallVal = _open[0];
+        foreach (NodeRecord nr in _open)
+        {
+            if(nr.costSoFar < smallVal.costSoFar)
+            {
+                smallVal = nr;
+            }
+        }
+
+        return smallVal;
+    }
 }
 
 /// <summary>
@@ -48,7 +101,9 @@ public class NodeRecord
     public GameObject Tile { get; set; } = null;
 
     // Set the other class properties here.
+    public Connection tileConnection = new Connection();
 
+    public float costSoFar { get; set; } = 0.0f;
     // Sets the tile's color.
     public void ColorTile (Color newColor)
     {
@@ -61,5 +116,29 @@ public class NodeRecord
     {
         TextMesh text = Tile.GetComponent<TextMesh>();
         text.text = value.ToString();
+    }
+}
+
+public class Connection
+{
+    public GameObject fromNode { get; set; } = null;
+
+    public GameObject toNode { get; set; } = null;
+
+    public float cost = 0.0f;
+
+    public float GetCost()
+    {
+        return cost;
+    }
+
+    public GameObject getFromNode()
+    {
+        return fromNode;
+    }
+
+    public GameObject getToNode()
+    {
+        return toNode;
     }
 }
