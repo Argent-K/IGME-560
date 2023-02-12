@@ -174,7 +174,7 @@ public class Dijkstra : MonoBehaviour
         watch.Stop();
 
         UnityEngine.Debug.Log("Seconds Elapsed: " + (watch.ElapsedMilliseconds / 1000f).ToString());
-        UnityEngine.Debug.Log("Nodes Expanded: " +  ((closed.Count + closed.Count).ToString()) +" print the number of nodes expanded here.");
+        UnityEngine.Debug.Log("Nodes Expanded: " +  ((closed.Count + open.Count).ToString()));
 
         // Reset the stopwatch.
         watch.Reset();
@@ -194,36 +194,48 @@ public class Dijkstra : MonoBehaviour
             //{
             //    UnityEngine.Debug.Log(con.ToString());
             //}
-
+            Stack<NodeRecord> test = new Stack<NodeRecord>();
             while (current.Tile != start)
             {
-                NodeRecord tempRecord = new NodeRecord();
+
                 // Pushes current nodeRecord onto the path
-                tempRecord = endNodeRecord;
-                path.Push(tempRecord);
+                test.Push(current);
+
+                // keeps end magenta
+                if (current.Tile.Equals(end) && colorTiles)
+                {
+                    current.ColorTile(Color.magenta);
+                }
 
                 // convert the connection gameobject to noderecord
-                
-                foreach(NodeRecord nr in closed)
+                NodeRecord tempRecord = new NodeRecord();
+                foreach (NodeRecord nr in closed)
                 {
                     
-                    if(nr.Equals(current.connection.getFromNode()))
+                    if(nr.Tile.Equals(current.connection.getFromNode()))
                         {
                         tempRecord = nr;
                         break;
                         }
                 }
-                endNodeRecord = tempRecord;
+                current = tempRecord;
 
                 if (colorTiles)
                 {
-                    endNodeRecord.ColorTile(pathColor);
+                    current.ColorTile(pathColor);
+
+                    if(current.Tile.Equals(start))
+                    {
+                        current.ColorTile(Color.magenta);
+                    }
                 }
+
 
                 yield return new WaitForSeconds(waitTime);
             }
 
-
+            path = test;
+            path.Push(startRecord);
             UnityEngine.Debug.Log("Path Length: " + path.Count.ToString());
 
         }
@@ -257,9 +269,7 @@ public class NodeRecord
     //public Connection connection { get; set; } = null;
     public Connection connection { get; set; } = null;
 
-    
-
-
+    public float estimatedTotalCost { get; set; } = 0.0f;
     public float costSoFar { get; set; } = 0.0f;
     // Sets the tile's color.
     public void ColorTile (Color newColor)
