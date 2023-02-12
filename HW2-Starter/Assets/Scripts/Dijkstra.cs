@@ -28,7 +28,7 @@ public class Dijkstra : MonoBehaviour
         // Initialize the record for the start node
         NodeRecord startRecord = new NodeRecord();
         startRecord.Tile = start;
-        //startRecord.Tile.GetComponent<Node>().Connections = null;
+        startRecord.connection = null;
         startRecord.costSoFar = 0;
 
         // Initialize the open and closed lists
@@ -37,6 +37,7 @@ public class Dijkstra : MonoBehaviour
         List<NodeRecord> closed = new List<NodeRecord>();
 
         NodeRecord current = new NodeRecord();
+        NodeRecord endNodeRecord = new NodeRecord();
 
         // Iterate through processing each node
         while (open.Count > 0)
@@ -59,33 +60,31 @@ public class Dijkstra : MonoBehaviour
                 break;
             }
 
+
+
             // otherwise get its outgoing connections
-            foreach(GameObject obj in current.Tile.GetComponent<Node>().Connections.Values)
+            List<Connection> connections = new List<Connection>();
+
+            foreach (GameObject obj in current.Tile.GetComponent<Node>().Connections.Values)
             {
                 Connection testCon = new Connection();
                 testCon.Cost = 1.0f;
                 testCon.toNode = obj;
                 testCon.fromNode = current.Tile;
-                current.connections.Add(testCon);
+                connections.Add(testCon);
             }
 
-
-
-
-
-
             // Loop through connection in turn (gameobject? direction?)
-            foreach (Connection con in current.connections)
+            foreach (Connection con in connections)
             {
                 // get the cost estimate for the end node
                 GameObject endNode = con.getToNode();
                 float endNodeCost = current.costSoFar + con.GetCost();
 
-                // If the node is closed we may have to skip
-                // or remove from the closed list
+                // if the node is closed skip
                 bool inClosed = false;
                 bool inOpen = false;
-                NodeRecord endNodeRecord = new NodeRecord();
+                endNodeRecord = new NodeRecord();
                 foreach(NodeRecord cl in closed)
                 {
                     if(cl.Tile.Equals(endNode))
@@ -103,17 +102,19 @@ public class Dijkstra : MonoBehaviour
                     if(ol.Tile.Equals(endNode))
                     {
                         inOpen = true;
-
+                        // WE find the record in the open list 
                         endNodeRecord = ol;
                     }
                 }
 
+                // Skip if node is closed
                 if (inClosed)
                 {
                     continue;
                 }
                 else if (inOpen)
                 {
+                    
                     if (endNodeRecord.costSoFar <= endNodeCost)
                     {
                         continue;
@@ -121,6 +122,8 @@ public class Dijkstra : MonoBehaviour
                     
                 } else
                 {
+                    // Otherwise we know we've got an unvisited novde,
+                    // make a record for it
                     endNodeRecord = new NodeRecord();
                     endNodeRecord.Tile = endNode;
                 }
@@ -128,7 +131,7 @@ public class Dijkstra : MonoBehaviour
                 // we're here if we need to update the node
                 // Update the cost and connection
                 endNodeRecord.costSoFar = endNodeCost;
-                endNodeRecord.connections.Add(con);
+                endNodeRecord.connection = con;
 
                 // if displaying costs, update the tile display
                 if(displayCosts)
@@ -171,7 +174,7 @@ public class Dijkstra : MonoBehaviour
         watch.Stop();
 
         UnityEngine.Debug.Log("Seconds Elapsed: " + (watch.ElapsedMilliseconds / 1000f).ToString());
-        UnityEngine.Debug.Log("Nodes Expanded: " +  ((closed.Count + closed.Count).ToString()) +"print the number of nodes expanded here.");
+        UnityEngine.Debug.Log("Nodes Expanded: " +  ((closed.Count + closed.Count).ToString()) +" print the number of nodes expanded here.");
 
         // Reset the stopwatch.
         watch.Reset();
@@ -187,11 +190,41 @@ public class Dijkstra : MonoBehaviour
         else
         {
             // Work back along the path, accumulating connections
-            foreach(Connection con in current.connections)
+            //foreach(Connection con in current.connections)
+            //{
+            //    UnityEngine.Debug.Log(con.ToString());
+            //}
+
+            while (current.Tile != start)
             {
-                UnityEngine.Debug.Log(con.ToString());
-            }
+                NodeRecord tempRecord = new NodeRecord();
+                // Pushes current nodeRecord onto the path
+                tempRecord = endNodeRecord;
+                path.Push(tempRecord);
+
+                // convert the connection gameobject to noderecord
                 
+                foreach(NodeRecord nr in closed)
+                {
+                    
+                    if(nr.Equals(current.connection.getFromNode()))
+                        {
+                        tempRecord = nr;
+                        break;
+                        }
+                }
+                endNodeRecord = tempRecord;
+
+                if (colorTiles)
+                {
+                    endNodeRecord.ColorTile(pathColor);
+                }
+
+                yield return new WaitForSeconds(waitTime);
+            }
+
+
+            UnityEngine.Debug.Log("Path Length: " + path.Count.ToString());
 
         }
 
@@ -222,7 +255,7 @@ public class NodeRecord
 
     // Set the other class properties here.
     //public Connection connection { get; set; } = null;
-    public List<Connection> connections { get; set; } = null;
+    public Connection connection { get; set; } = null;
 
     
 
