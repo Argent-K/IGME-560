@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 namespace RPS
 {
@@ -58,7 +59,7 @@ namespace RPS
     {
         // The frequency data : takes an array and returns a KeyDataRecord
         //Hashtable data = new Hashtable();
-        public Dictionary<RPSMove[], KeyDataRecord> data = new Dictionary<RPSMove[], KeyDataRecord>();
+        public Dictionary<string, KeyDataRecord> data = new Dictionary<string, KeyDataRecord>();
         Hashtable hdata = new Hashtable();
         
         
@@ -68,6 +69,7 @@ namespace RPS
         public NGramPredictor(int windowSize)
         {
             nValue = windowSize + 1;
+
             
         }
 
@@ -75,83 +77,143 @@ namespace RPS
         // Register a set of actions with predictor, updating its data.
         // We assume actions have exactly nValue elements in it
 
-        public void RegisterSequence(RPSMove[] actions)
+        public void RegisterSequence(char[] actions)
         {
-            // split the sequence into a key and value  key = prev moves value = current move
-            RPSMove[] key = new RPSMove[nValue - 1];
-            for(int i = 0; i < actions.Length - 1; i++)
+            char[] tempArr = new char[nValue - 1];
+            //string tempArr = ArrToStrKey(ref actions); // assuming actions is char array
+            for(int i = 0; i < actions.Length -1; i++)
             {
-                key[i] = actions[i];
+                tempArr[i] = actions[i];
             }
+            string key = ArrToStrKey(ref tempArr);
+            char val = actions[nValue - 1];
 
-            RPSMove value = actions[nValue - 1]; // may need to - 1 this
-
-            KeyDataRecord keyData;
-            // Make sure we've got storage
-            if (!hdata.ContainsKey(key))
+            if (!data.ContainsKey(key))
             {
-                // *base* keyData = data[key] = new KeyDataRecord();
-                keyData = (KeyDataRecord)(hdata[key] = new KeyDataRecord());
+                data[key] = new KeyDataRecord();
+                
             }
-            else
-            {
-                keyData = (KeyDataRecord)hdata[key];
-            }
+            KeyDataRecord kdr = data[key];
 
-            //Add to the total, an to the count for the value
-            keyData.counts[value] += 1;
-            keyData.total += 1;
+            kdr.counts[val]++;
+            kdr.total++;
+
+
+
+
+
+
+
+
+
+
+            //// split the sequence into a key and value  key = prev moves value = current move
+            //RPSMove[] key = new RPSMove[nValue - 1];
+            //for(int i = 0; i < actions.Length - 1; i++)
+            //{
+            //    key[i] = actions[i];
+            //}
+
+            //RPSMove value = actions[nValue - 1]; // may need to - 1 this
+
+            //KeyDataRecord keyData;
+            //// Make sure we've got storage
+            //if (!hdata.ContainsKey(key))
+            //{
+            //    // *base* keyData = data[key] = new KeyDataRecord();
+            //    keyData = (KeyDataRecord<T>)(data[key] = new KeyDataRecord<T>());
+            //}
+            //else
+            //{
+            //    keyData = (KeyDataRecord)data[key];
+            //}
+
+            ////Add to the total, an to the count for the value
+            //keyData.counts[value] += 1;
+            //keyData.total += 1;
 
         }
 
-        public RPSMove GetMostLikely(RPSMove[] actions)
+        public char GetMostLikely(char[] actions)
         {
-            
+            string key = ArrToStrKey(ref actions);
+            KeyDataRecord kdr = data[key];
 
-            // Get the key data
-            // *base *keyData = data[actions];
+            int highestVal = 0;
+            char bestAction = RockPaperScissors.RandomMove();
 
-            //for(int i = 0; i < actions.Length; i++)
-            //{
-            //    UnityEngine.Debug.Log(actions[i]);
-            //}
-
-            //UnityEngine.Debug.Log(data.Keys);
-            //UnityEngine.Debug.Log(actions);
-
-            // dictionary uses hashcodes need to write comparer
-            KeyDataRecord keyData = (KeyDataRecord)hdata[actions];
+            // get list of actions in the store
 
 
-            // Find the highest probability
-            int highestValue = 0;
-            RPSMove bestAction = RockPaperScissors.CharToMove(RockPaperScissors.RandomMove());
-
-            // Get the list of actions in the store
-            actions = new RPSMove[keyData.hcounts.Count];
-            int index = 0;
-            foreach (RPSMove key in keyData.hcounts.Keys)
+            foreach (KeyValuePair<char, int> kvp in kdr.counts)
             {
-                actions[index] = key;
-                index++;
-            }
-
-            // go through each action
-            foreach (RPSMove action in actions)
-            {
-                // check for the highest value
-                if ((int)keyData.hcounts[action] > highestValue)
+                if (kvp.Value > highestVal)
                 {
-                    // store the action
-                    highestValue = (int)keyData.hcounts[action];
-                    bestAction = action;
+                    bestAction = kvp.Key;
+                    highestVal = kvp.Value;
                 }
             }
 
-            // We've looked through all actions, if best action is still null
-            // then its because we have no data on the given window.
-            // otherwise we have best action to take
             return bestAction;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //// dictionary uses hashcodes need to write comparer
+            //KeyDataRecord keyData = (KeyDataRecord)data[actions];
+
+
+            //// Find the highest probability
+            //int highestValue = 0;
+            //RPSMove bestAction = RockPaperScissors.CharToMove(RockPaperScissors.RandomMove());
+
+            //// Get the list of actions in the store
+            //actions = new RPSMove[keyData.counts.Count];
+            //int index = 0;
+            //foreach (RPSMove key in keyData.counts.Keys)
+            //{
+            //    actions[index] = key;
+            //    index++;
+            //}
+
+            //// go through each action
+            //foreach (RPSMove action in actions)
+            //{
+            //    // check for the highest value
+            //    if ((int)keyData.counts[action] > highestValue)
+            //    {
+            //        // store the action
+            //        highestValue = (int)keyData.counts[action];
+            //        bestAction = action;
+            //    }
+            //}
+
+            //// We've looked through all actions, if best action is still null
+            //// then its because we have no data on the given window.
+            //// otherwise we have best action to take
+            //return bestAction;
+        }
+
+
+
+        public static string ArrToStrKey(ref char[] actions)
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach(char a in actions)
+            {
+                builder.Append(a.ToString());
+            }
+            return builder.ToString();
         }
 
     }
@@ -159,11 +221,11 @@ namespace RPS
     public class KeyDataRecord
     {
         // the counts for each successor action  Takes any key and returns int
-        public Dictionary<RPSMove, int> counts = new Dictionary<RPSMove, int>()
+        public Dictionary<char, int> counts = new Dictionary<char, int>()
         {
-            { RPSMove.Rock, 0 },
-            { RPSMove.Scissors, 0 },
-            { RPSMove.Paper, 0}
+            { 'r', 0 },
+            { 's', 0 },
+            { 'p', 0}
         };
 
         public Hashtable hcounts = new Hashtable()
@@ -172,7 +234,7 @@ namespace RPS
             {RPSMove.Scissors, 0 },
             {RPSMove.Paper, 0 }
         };
-       
+
         
             
         // The number of times the window has been used
@@ -185,4 +247,6 @@ namespace RPS
     {
         Rock = 0, Paper = 1, Scissors = 2
     }
+
+    
 }

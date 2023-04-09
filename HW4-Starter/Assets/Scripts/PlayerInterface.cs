@@ -17,9 +17,10 @@ public class PlayerInterface : MonoBehaviour
     private int aiWins = 0;
 
     // Records the history of player inputs
-    static int windowSize = 2;
+    static int windowSize = 3;
     NGramPredictor nGram = new NGramPredictor(windowSize);
-    List<RPSMove> hist = new List<RPSMove>();
+    List<char> hist = new List<char>();
+    //List<RPSMove> hist = new List<RPSMove>();
 
 
     // Update is called once per frame
@@ -60,7 +61,7 @@ public class PlayerInterface : MonoBehaviour
                 char predicted = 'r';
                 // Add inputs to a history array then register
                 
-                hist.Add(RockPaperScissors.CharToMove(input));
+                hist.Add(input);
                 if(hist.Count <= windowSize) // Count is total num of objects in hist
                 {
                     // Not enough data in window just predict randomly
@@ -74,34 +75,15 @@ public class PlayerInterface : MonoBehaviour
                     
                     nGram.RegisterSequence(hist.ToArray());
 
+                    // truncate hist to last (windowsize) indices 
 
-
-                    Debug.Log("nGram.data keys");
-                    foreach(KeyValuePair<RPSMove[], KeyDataRecord> kvp in nGram.data)
-                    {
-                        foreach(RPSMove rps in kvp.Key)
-                        {
-                            
-                            Debug.Log(rps);
-                            Debug.Log(kvp.Key.Length);
-                        }
-                    }
-                    predicted = RockPaperScissors.MoveToChar(nGram.GetMostLikely(hist.GetRange(0,hist.Count - 1).ToArray())); // May need to only send all but last index
+                    predicted = (nGram.GetMostLikely(hist.GetRange(0,hist.Count - 1).ToArray())); // May need to only send all but last index
 
 
                     // Remove earliest move played
                     hist.RemoveAt(0);
                 }
 
-
-
-
-                Debug.Log(hist.Count);
-                foreach(KeyValuePair<RPSMove[], KeyDataRecord> kvp in nGram.data)
-                {
-                    Debug.Log(kvp.Key);
-                    Debug.Log(kvp.Value);
-                }
                 
 
 
